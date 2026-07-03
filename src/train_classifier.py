@@ -7,13 +7,13 @@ import os
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from config import FEATURED_DATA_PATH, MODELS_DIR, RANDOM_STATE
-from model_utils import save_model
+from model_utils import classification_metrics, save_model
 
 FEATURES = ["month", "day_of_year", "season_code", "temperature", "humidity", "wind_speed", "rainfall"]
 
@@ -37,28 +37,42 @@ def train_weather_condition_classifier():
         ),
     }
 
-    best_name, best_model, best_acc = None, None, -1.0
+    best_name, best_model, best_metrics = None, None, None
+    best_acc = -1.0
+    results = {}
 
     print("\n=== Training weather condition classifiers ===")
     for name, model in candidates.items():
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
-        acc = accuracy_score(y_test, preds)
-        print(f"\n{name}: Accuracy={acc:.3f}")
+        metrics = classification_metrics(y_test, preds)
+        results[name] = metrics
+
+        print(
+            f"\n{name:20s} Accuracy={metrics['Accuracy']:.3f}  "
+            f"Precision={metrics['Precision']:.3f}  "
+            f"Recall={metrics['Recall']:.3f}  "
+            f"F1={metrics['F1']:.3f}"
+        )
         print(classification_report(y_test, preds, target_names=label_encoder.classes_, zero_division=0))
 
-        if acc > best_acc:
-            best_acc = acc
+        if metrics["Accuracy"] > best_acc:
+            best_acc = metrics["Accuracy"]
             best_name = name
             best_model = model
+            best_metrics = metrics
 
-    print(f">>> Best classifier: {best_name} (Accuracy={best_acc:.3f})")
+    print(
+        f">>> Best classifier: {best_name} "
+        f"(Accuracy={best_metrics['Accuracy']:.3f}, Precision={best_metrics['Precision']:.3f}, "
+        f"Recall={best_metrics['Recall']:.3f}, F1={best_metrics['F1']:.3f})"
+    )
 
     save_model(best_model, os.path.join(MODELS_DIR, "best_weather_condition_model.pkl"))
     save_model(label_encoder, os.path.join(MODELS_DIR, "weather_condition_label_encoder.pkl"))
     save_model(FEATURES, os.path.join(MODELS_DIR, "weather_condition_features.pkl"))
 
-    return best_name, best_acc
+    return best_name, best_metrics
 
 
 if __name__ == "__main__":

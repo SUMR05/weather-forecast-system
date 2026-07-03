@@ -9,6 +9,23 @@ No external APIs or internet access are required — a realistic synthetic
 3-year daily weather dataset is generated locally and used for the entire
 pipeline.
 
+## Screenshots
+
+**Temperature trend over 3 years:**
+
+![Temperature Trend](outputs/temperature_trend.png)
+
+**Monthly average weather changes:**
+
+![Monthly Weather Changes](outputs/monthly_weather_changes.png)
+
+**Wind speed analysis:**
+
+![Wind Speed Analysis](outputs/wind_speed_analysis.png)
+
+More charts (rainfall trend, humidity trend, monthly condition counts) are
+in the [`outputs/`](outputs/) folder.
+
 ## Project Structure
 
 ```
@@ -143,9 +160,21 @@ For each regression target, three models are trained and compared:
 | Random Forest Regressor | MAE, MSE, RMSE, R² |
 
 The model with the **highest R² score** on the held-out test set is selected
-and saved as the "best" model for that target. Weather condition
-classification is evaluated using accuracy and a full classification report
-(precision/recall/F1 per class).
+and saved as the "best" model for that target.
+
+For weather condition classification, three classifiers (Logistic
+Regression, Decision Tree, Random Forest) are compared using:
+
+| Metric | What it measures |
+|---|---|
+| **Accuracy** | Overall % of days classified correctly |
+| **Precision** | Of the days predicted as a given condition, how many actually were |
+| **Recall** | Of the days that were actually a given condition, how many were caught |
+| **F1-score** | Balance between precision and recall (weighted across all classes) |
+
+The classifier with the **highest accuracy** is selected as the best model,
+and a full per-class classification report (precision/recall/F1 for each of
+Sunny/Cloudy/Rainy/Stormy) is printed for a detailed breakdown.
 
 Note: rainfall is inherently noisy/hard to predict from date and other
 weather variables alone (it is naturally close to random in the synthetic
